@@ -70,3 +70,29 @@ sdf3 = spark.read.format("json").load("/tmp/sales_orders.json")
 # DBTITLE 1,DataFrames are still identical
 print(sdf1.schema == sdf3.schema)
 print(sdf1.collect() == sdf3.collect())
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Let's look at different ways to parse the nested json elements into a more useful tabular format
+
+# COMMAND ----------
+
+# DBTITLE 1,The clicked_items column has numerous elements, let's explode into multiple rows
+from pyspark.sql.functions import explode
+
+sdf_explode = sdf1.withColumn('clicked_items_expanded', explode('clicked_items'))
+display(sdf_explode)
+
+# COMMAND ----------
+
+# DBTITLE 1,Now let's split the exploded column into two
+sdf_explode_expand = (sdf_explode
+                      .withColumn('clicked_items_code', sdf_explode.clicked_items_expanded.getItem(0))
+                      .withColumn('clicked_items_num', sdf_explode.clicked_items_expanded.getItem(1)))
+
+display(sdf_explode_expand)
+
+# COMMAND ----------
+
+
