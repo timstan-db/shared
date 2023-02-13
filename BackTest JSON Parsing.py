@@ -29,7 +29,7 @@ from pyspark.sql.functions import from_json
 
 schemaTestResults = raw.select("TestResults").schema
 
-nested_col = string_col.withColumn("TestResults", from_json(string_col.TestResults, schemaTestResults)) # how to retain data labels?
+nested_col = string_col.withColumn("TestResults", from_json(string_col.TestResults, schemaTestResults))
 nested_col.printSchema()
 display(nested_col)
 
