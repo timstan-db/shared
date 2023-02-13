@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC ## Read json, infer schema, convert column between nested struct and string
+
+# COMMAND ----------
+
 # import
 raw = (spark.read
        .format("json")
@@ -8,6 +13,30 @@ raw = (spark.read
 # inspect
 raw.printSchema()
 display(raw)
+
+# COMMAND ----------
+
+# DBTITLE 1,Convert TestResults column from nested structure into string format to be combined with other tests
+from pyspark.sql.functions import to_json
+string_col = raw.withColumn("TestResults", to_json(raw.TestResults))
+string_col.printSchema()
+display(string_col)
+
+# COMMAND ----------
+
+# DBTITLE 1,Convert back to original nested json structure
+from pyspark.sql.functions import from_json
+
+schemaTestResults = raw.select("TestResults").schema
+
+nested_col = string_col.withColumn("TestResults", from_json(string_col.TestResults, schemaTestResults)) # how to retain data labels?
+nested_col.printSchema()
+display(nested_col)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## FYI - an example of how to dynamically flatten any json
 
 # COMMAND ----------
 
