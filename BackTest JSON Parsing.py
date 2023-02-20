@@ -25,13 +25,20 @@ display(string_col)
 # COMMAND ----------
 
 # DBTITLE 1,Convert back to original nested json structure
-from pyspark.sql.functions import from_json
+from pyspark.sql.functions import from_json, schema_of_json, lit, col
 
-schemaTestResults = raw.select("TestResults").schema
+# this is a string with the json structure
+stringTestResults = string_col.select("TestResults").collect()[0][0]
 
+# create string of schema in the correct format for from_json()
+schemaTestResults = string_col.select(schema_of_json(lit(stringTestResults))).collect()[0][0]
+
+# converts TestResults column from string back to nested json
 nested_col = string_col.withColumn("TestResults", from_json(string_col.TestResults, schemaTestResults))
+
+# confirm this worked properly
+print("schema matches with original: ", raw.schema == nested_col.schema)
 nested_col.printSchema()
-display(nested_col)
 
 # COMMAND ----------
 
